@@ -107,7 +107,7 @@ app.message(async ({ message, say }) => {
                     fields: [
                         {
                             type: "mrkdwn",
-                            text: `_${movie.title} requested by <@${movie.requestor}>`,
+                            text: `_${movie.title}_ requested by <@${movie.requestor}>`,
                         },
                     ],
                 };
@@ -153,7 +153,7 @@ app.message(async ({ message, say }) => {
     ) {
         /* Add movies */
         console.log("movie lookup", matches);
-        const query = matches![3].replace(/\?/g, "");
+        const query = (matches![3] || matches![1]).replace(/\?/g, "");
         const data = (
             await tmdb.get(
                 `search/movie?query=${query}&include_adult=false&language=en-US&page=1`
@@ -164,6 +164,16 @@ app.message(async ({ message, say }) => {
         );
         const forceAdd = text.includes("force");
         if (forceAdd) {
+            movieQueue.push({
+                title: query,
+                requestor: message.user!,
+            });
+            await flushMovieQueue();
+            await say({
+                text: `Not sure if I've heard of it, but added '${query}' to the queue!`,
+                thread_ts: message.ts,
+            });
+        } else {
             if (popularMovies.length) {
                 const movie = popularMovies[0];
                 const year = movie.release_date.split("-")[0];
@@ -191,22 +201,12 @@ app.message(async ({ message, say }) => {
                     thread_ts: message.ts,
                 });
             }
-        } else {
-            movieQueue.push({
-                title: query,
-                requestor: message.user!,
-            });
-            await flushMovieQueue();
-            await say({
-                text: `Not sure if I've heard of it, but added '${query}' to the queue!`,
-                thread_ts: message.ts,
-            });
         }
     } else if (
         (matches = /(?:remove) (?:(?:\"(.*)\"|_(.*)_)|(.*))/i.exec(text))
     ) {
         /* Remove movies */
-        const query = matches![2].replace(/\?/g, "").toLowerCase();
+        const query = matches![3].replace(/\?/g, "").toLowerCase();
         const indexToRemove = movieQueue.findIndex((movie) => {
             movie.title.toLowerCase().includes(query);
         });
