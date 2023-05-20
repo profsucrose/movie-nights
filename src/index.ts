@@ -218,7 +218,10 @@ app.message(async ({ message, client, say }) => {
         (matches = /(?:remove) (?:(?:\"(.*)\"|_(.*)_)|(.*))/i.exec(text))
     ) {
         /* Remove movies */
-        const query = matches![3].replace(/\?/g, "");
+        const query = (matches![1] ?? matches![2] ?? matches![3]).replace(
+            /\?/g,
+            ""
+        );
         const queryLowercase = query.toLowerCase();
         const indexToRemove = movieQueue.findIndex((movie) => {
             movie.title.toLowerCase().includes(queryLowercase);
