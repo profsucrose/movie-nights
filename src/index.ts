@@ -45,7 +45,7 @@ const movieQueue: Movie[] = JSON.parse(
     };
 });
 
-const flushMovieQueue = async () => {
+const saveMovieQueue = async () => {
     return new Promise((resolve, _) => {
         fs.writeFile(QUEUE_PATH, JSON.stringify(movieQueue), resolve);
     });
@@ -177,7 +177,7 @@ app.message(async ({ message, client, say }) => {
                 title: query,
                 requestor: message.user!,
             });
-            await flushMovieQueue();
+            await saveMovieQueue();
             await say({
                 text: `Not sure if I've heard of it, but added '${query}' to the queue!`,
                 thread_ts: message.ts,
@@ -199,7 +199,7 @@ app.message(async ({ message, client, say }) => {
                     title: movie.title,
                     requestor: message.user!,
                 });
-                await flushMovieQueue();
+                await saveMovieQueue();
                 await say({
                     text: "...added it to the queue!",
                     thread_ts: message.ts,
@@ -227,7 +227,7 @@ app.message(async ({ message, client, say }) => {
         } else {
             const movieName = movieQueue[indexToRemove].title;
             movieQueue.splice(indexToRemove, 1);
-            flushMovieQueue();
+            await saveMovieQueue();
             await say({
                 text: `I really wish you all would take the time to see it, but I removed _${movieName}_ from the movie queue.`,
                 thread_ts: message.ts,
