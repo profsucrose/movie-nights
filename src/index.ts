@@ -99,9 +99,10 @@ app.message(async ({ message, client, say }) => {
             thread_ts: message.ts,
         });
         const templateMessage = await say({
-            text: "\u2002",
+            text: "\u2002 <empty message>",
             thread_ts: message.ts,
         });
+        await new Promise((resolve) => setTimeout(resolve, 3000));
         await client.chat.update({
             channel: templateMessage.channel!,
             ts: templateMessage.ts!,
