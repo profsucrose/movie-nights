@@ -218,14 +218,14 @@ app.message(async ({ message, client, say }) => {
         (matches = /(?:remove) (?:(?:\"(.*)\"|_(.*)_)|(.*))/i.exec(text))
     ) {
         /* Remove movies */
-        const query = (matches![1] ?? matches![2] ?? matches![3]).replace(
+        const query = (matches![1] || matches![2] || matches![3]).replace(
             /\?/g,
             ""
         );
         const queryLowercase = query.toLowerCase();
-        const indexToRemove = movieQueue.findIndex((movie) => {
-            movie.title.toLowerCase().includes(queryLowercase);
-        });
+        const indexToRemove = movieQueue.findIndex((movie) =>
+            movie.title.toLowerCase().includes(queryLowercase)
+        );
         if (indexToRemove == -1) {
             await say({
                 text: `There isn't a movie called '${query}' in the queue. Did you spell it right?`,
