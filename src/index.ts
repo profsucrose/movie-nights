@@ -98,7 +98,10 @@ app.message(async ({ message, client, say }) => {
                 : "The queue is currently empty, but feel free to add to it!",
             thread_ts: message.ts,
         });
-        const templateMessage = await say("\u2002");
+        const templateMessage = await say({
+            text: "\u2002",
+            thread_ts: message.ts,
+        });
         await client.chat.update({
             channel: templateMessage.channel!,
             ts: templateMessage.ts!,
