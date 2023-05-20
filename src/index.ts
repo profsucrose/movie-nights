@@ -72,7 +72,7 @@ app.use(async ({ next }) => {
     await next();
 });
 
-app.message(async ({ message, say }) => {
+app.message(async ({ message, client, say }) => {
     if (!("text" in message)) return;
     let text: string = message.text!;
     if (!text?.includes(SLACK_ID)) return;
@@ -95,12 +95,14 @@ app.message(async ({ message, say }) => {
                   } currently ${movieQueue.length} movie${
                       movieQueue.length > 1 ? "s" : ""
                   } in the queue:`
-                : "The queue is currently empty, but feel free to add to it:",
+                : "The queue is currently empty, but feel free to add to it!",
             thread_ts: message.ts,
         });
-        await say({
-            text: movieQueue.map((movie) => movie.title).join(", "),
-            thread_ts: message.ts,
+        const templateMessage = await say("\u2002");
+        await client.chat.update({
+            channel: templateMessage.channel!,
+            ts: templateMessage.ts!,
+            thread_ts: templateMessage.ts,
             blocks: movieQueue.map((movie) => {
                 return {
                     type: "section",
@@ -112,16 +114,20 @@ app.message(async ({ message, say }) => {
                     ],
                 };
             }),
+            text: movieQueue.map((movie) => movie.title).join(", "),
         });
     } else if (
         (matches =
-            /(search|look.*up|what's|what is|find)(?: (?:\"(.*)\"|_(.*)_)| (.*))/i.exec(
+            /(?:search|look.*up|what's|what is|find)(?: (?:\"(.*)\"|_(.*)_)| (.*))/i.exec(
                 text
             ))
     ) {
         /* Movie lookup */
         console.log("movie lookup", matches);
-        const query = matches![3].replace(/\?/g, "");
+        const query = (matches![1] ?? matches![2] ?? matches![3]).replace(
+            /\?/g,
+            ""
+        );
         const data = (
             await tmdb.get(
                 `search/movie?query=${query}&include_adult=false&language=en-US&page=1`
@@ -153,7 +159,10 @@ app.message(async ({ message, say }) => {
     ) {
         /* Add movies */
         console.log("movie lookup", matches);
-        const query = (matches![3] || matches![1]).replace(/\?/g, "");
+        const query = (matches![1] ?? matches![2] ?? matches![3]).replace(
+            /\?/g,
+            ""
+        );
         const data = (
             await tmdb.get(
                 `search/movie?query=${query}&include_adult=false&language=en-US&page=1`
